@@ -105,7 +105,7 @@ class Eav
         } elseif (is_numeric($id)) {
             $option = $this->_optionModel->find($id)->current();
         } else {
-            $where = $this->_optionModel->select()->where($this->{$_optionFieldName} . ' = ?', $id);
+            $where = $this->_optionModel->select()->where($this->_optionFieldName . ' = ?', $id);
             $option = $this->_optionModel->fetchRow($where);
         }
         $this->cacheOption($option);
