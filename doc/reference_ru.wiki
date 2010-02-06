@@ -1,0 +1,149 @@
+=Руководство=
+
+==Быстрый старт==
+
+===Подготовка таблиц===
+Допустим у вас есть таблица "products" для которой вы хотите сохранять дополнительные
+атрибуты. Создайте несколько таблиц где будут сохранятся значения атрибутов.
+Например:
+  * products_int,
+  * products_decimal
+  * products_string
+  * products_text
+
+Каждая такая таблица должна содержать следующие поля:
+  * id(INT) - первичный ключ таблицы(autoincrement)
+  * entity_id(INT) - идентификатор вашой записи для которой сохраняется значения
+  * option_id(INT) - идентификатор атрибута для которого сохраняется значение
+  * value - поле где сохраняется само значение атрибута, тип поля будет разным
+    для каждой таблицы (int, decimal, varchar, text)
+
+Также у вас должна быть таблица опций(атрибутов) которая должна содержать
+минимум 3 следующих поля:
+    * id, первичный ключ
+    * type, поле типа, по нему определается в какой таблице будут сохранятся
+      значения
+    * name, имя атрибута, по которому вы его будете идентифицыровать. Конечно
+      можно использовать и id но имя на много удобнее при чтении кода
+Имена этих полей не обязательно должны называться так как выше, здесь представлены
+имена полей по умолчанию. Если ее нету, тогда создайте ее.
+
+Создайте в таблице опций несколько записей.
+id      type     name
+1       int      quantity
+2       string   title
+3       text     description
+
+===Наследование от Eav===
+В оригинальном классе используются имена полей по умолчанию, если они у вас другие
+тогда создайте класс потомок от класса Eav и задайте эти поля. Например:
+{{{
+
+class Eav_Product extends Eav
+{
+    protected $_entityFieldId = 'id'; // имя первичного ключа в таблице products
+    protected $_optionTableName = 'product_option'; // имя таблицы опций(атрибутов)
+    protected $_optionFieldId   = 'option_id'; // имя первичного ключа в таблице опций
+    protected $_optionFieldType = 'option_type'; // имя для поля "type" в таблице опций
+    protected $_optionFieldName = 'option_name'; // имя для поля "name" в таблице опций
+}
+
+}}}
+
+===Сохранение атрибутов===
+{{{
+
+$productModel = new Zend_Db_Table('products');
+$productEav = new Eav_Product($productModel);
+
+$products = $productModel->find(array(1,2,3));
+
+foreach ($products as $product) {
+    $productEav->setOptionValue($product, 'quantity', 10);
+    $productEav->setOptionValue($product, 'title', 'product title');
+    $productEav->setOptionValue($product, 'description', 'my description');
+}
+
+}}}
+
+===Получение значений атрибутов===
+$productModel = new Zend_Db_Table('products');
+$productEav = new Eav_Product($productModel);
+
+$product = $productModel->find(1)->current();
+echo $productEav->getOptionValue($product, 'quantity');
+echo $productEav->getOptionValue($product, 'title');
+echo $productEav->getOptionValue($product, 'description');
+
+==Пример использования==
+Controller:
+{{{
+
+$optionModel = new Zend_Db_Table('options');
+$productModel = new Zend_Db_Table('products');
+$productEav = new Eav_Product($productModel);
+
+$products = $productModel->find(array(1,2,3));
+$options = $optionModel->fetchAll();
+
+}}}
+
+View:
+{{{
+<?php foreach ($this->products as $product): ?>
+
+    <b><?php echo $product->title; ?></b><br />
+    <?php foreach ($this->options as $option): ?>
+
+        <?php echo $option->label; ?>:
+        <?php echo $this->eav->getOptionValue($product, $option); ?><br />
+
+    <?php endforeach; ?>
+
+<?php endforeach; ?>
+}}}
+
+==Ускорение==
+При подходе выше каждый раз когда вы хотите получить значение атрибута будет
+выполнен запрос к базе данных. Можно получить значения атрибутов используя всего
+один запрос к базе данных. Для этого нужно чтобы RowClass вашей модели реализовал
+Eav_Row_Interface. Если вы не используете свой RowClass тогда можно просто
+использовать готовый класс Eav_Row. Ниже несколько примеров:
+
+{{{
+
+$optionModel = new Zend_Db_Table('options');
+
+$productModel = new Zend_Db_Table('products');
+$productModel->setRowClass('Eav_Row');
+
+$productEav = new Eav_Product($productModel);
+
+$products = $productModel->find(array(1,2,3));
+
+// Загрузка всех атрибутов
+$options = $optionModel->fetchAll();
+$productEav->loadOptions($rows, $options);
+
+foreach ($products as $product) {
+    // здесь не будет вызвано никакого запроса к базе данных
+    echo $productEav->getOptionValue($product, 'title');
+    echo $productEav->getOptionValue($product, 'description');
+    echo $productEav->getOptionValue($product, 'quantity');
+}
+
+// Загрузка определенных атрибутов
+$where = $optionModle->select()->where("name in(?)", array('title', 'description'));
+$options = $optionModel->fetchAll($where);
+$productEav->loadOptions($products, $options);
+
+foreach ($products as $product) {
+    // здесь не будет вызвано никакого запроса к базе данных
+    echo $productEav->getOptionValue($product, 'title');
+    echo $productEav->getOptionValue($product, 'description');
+
+    // а для этого атрибута будет вызван запрос к базе
+    echo $productEav->getOptionValue($product, 'quantity');
+}
+
+}}}
