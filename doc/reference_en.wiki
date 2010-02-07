@@ -1,0 +1,160 @@
+_Text was translated using google translate. Sorry for mistakes._
+
+=Reference=
+
+==Quick start==
+
+===Prepare tables===
+For example if you have "products" table and you want to save EAV attributes for this table. Then create several tables where EAV attributes will be stored.
+Example:
+  * products_int,
+  * products_decimal
+  * products_string
+  * products_text
+
+Each table should contain next fields:
+  * id(INT) – primary key(auto increment)
+  * entity_id(INT) – identifier of your record in the products table
+  * option_id(INT) – identifier of attribute
+  * value – in this field the value of attribute will be stored. Type of this field should be different for each table(int, decimal, varchar, text)
+
+Also you should have table of options(attributes) with next fields inside:
+    * id, primary key
+    * type, type of option(attribute)
+    * name, name of option(attribute)
+
+The names of these fields do not necessarily have to be called as above. Here we have the names of fields by default. If you don't have such table then create it.
+
+Then create several records in the 'options' table
+{{{
+id      type     name
+1       int      quantity
+2       string   title
+3       text     description
+}}}
+
+===Extends Eav===
+You can specify the others names of required fields:
+{{{
+
+class Eav_Product extends Eav
+{
+    protected $_entityFieldId = 'id'; // name of primary key of products table
+    protected $_optionTableName = 'product_option'; // name of 'options' table
+    protected $_optionFieldId   = 'option_id'; // name of primary key of options table
+    protected $_optionFieldType = 'option_type'; // field where option type is stored
+    protected $_optionFieldName = 'option_name'; // field where option name is stored
+}
+
+}}}
+
+===Save attributes===
+{{{
+
+$productModel = new Zend_Db_Table('products');
+$productEav = new Eav_Product($productModel);
+
+$products = $productModel->find(array(1,2,3));
+
+foreach ($products as $product) {
+    $productEav->setOptionValue($product, 'quantity', 10);
+    $productEav->setOptionValue($product, 'title', 'product title');
+    $productEav->setOptionValue($product, 'description', 'my description');
+}
+
+}}}
+
+===Get attributes===
+{{{
+$productModel = new Zend_Db_Table('products');
+$productEav = new Eav_Product($productModel);
+
+$product = $productModel->find(1)->current();
+echo $productEav->getOptionValue($product, 'quantity');
+echo $productEav->getOptionValue($product, 'title');
+echo $productEav->getOptionValue($product, 'description');
+
+// or using option id
+echo $productEav->getOptionValue($product, '1');
+
+// or using option object(Row)
+$optionTable = new Zend_Db_Table('options');
+$option = $optionTable->find(2)->current();
+echo $productEav->getOptionValue($product, $option);
+
+// or using eav object
+$option = $productEav->getOption('title');
+echo $productEav->getOptionValue($product, $option);
+}}}
+
+==Full example==
+Controller:
+{{{
+
+$optionModel = new Zend_Db_Table('options');
+$productModel = new Zend_Db_Table('products');
+$productEav = new Eav_Product($productModel);
+
+$products = $productModel->find(array(1,2,3));
+$options = $optionModel->fetchAll();
+
+}}}
+
+View:
+{{{
+<?php foreach ($this->products as $product): ?>
+
+    <b><?php echo $product->title; ?></b><br />
+    <?php foreach ($this->options as $option): ?>
+
+        <?php echo $option->label; ?>:
+        <?php echo $this->eav->getOptionValue($product, $option); ?><br />
+
+    <?php endforeach; ?>
+
+<?php endforeach; ?>
+}}}
+
+==Speed up==
+With the approach above, every time you want to get the value of attribute you will have query to the database. You can get the attribute values using only one query to the database. To do so RowClass of your model should implement Eav_Row_Interface. If you are not using other RowClass then you can simply use a ready-made class Eav_Row. Below are some examples:
+
+{{{
+
+$optionModel = new Zend_Db_Table('options');
+
+$productModel = new Zend_Db_Table('products');
+$productModel->setRowClass('Eav_Row');
+
+$productEav = new Eav_Product($productModel);
+
+$products = $productModel->find(array(1,2,3));
+
+// Loading all attributes
+$options = $optionModel->fetchAll();
+$productEav->loadOptions($rows, $options);
+
+foreach ($products as $product) {
+    // no more queries
+    echo $productEav->getOptionValue($product, 'title');
+    echo $productEav->getOptionValue($product, 'description');
+    echo $productEav->getOptionValue($product, 'quantity');
+}
+
+// Loading some attributes
+$where = $optionModel->select()->where("name in(?)", array('title', 'description'));
+$options = $optionModel->fetchAll($where);
+// or
+$options = $optionModel->find(array(2,3));
+
+$productEav->loadOptions($products, $options);
+
+foreach ($products as $product) {
+    // no more queries
+    echo $productEav->getOptionValue($product, 'title');
+    echo $productEav->getOptionValue($product, 'description');
+
+    // here we have one query to database
+    echo $productEav->getOptionValue($product, 'quantity');
+}
+
+}}}
