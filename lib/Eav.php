@@ -125,6 +125,16 @@ class Eav
         }
     }
 
+    public function getValueRow($entityRow, $optionRow)
+    {
+        $eavModel = $this->getEavModel($optionRow);
+        $optionId = $this->getOptionId($optionRow);
+        $where = $eavModel->select()
+                          ->where('entity_id = ?', $this->getEntityId($entityRow))
+                          ->where('option_id = ?', $optionId);
+        return $eavModel->fetchRow($where);
+    }
+
     /**
      * Return option value
      * 
@@ -142,11 +152,7 @@ class Eav
         if (!$reload && $row instanceof Eav_RowInterface && $row->hasOptionValue($optionId)) {
             return $row->getOptionValue($optionId);
         }
-        $eavModel = $this->getEavModel($option);
-        $where = $eavModel->select()
-                          ->where('entity_id = ?', $this->getEntityId($row))
-                          ->where('option_id = ?', $optionId);
-        $valueRow = $eavModel->fetchRow($where);
+        $valueRow = $this->getValueRow($row, $option);
 
         $value = $valueRow ? $valueRow->value : '';
 
@@ -170,10 +176,8 @@ class Eav
             $option = $this->getOption($option);
         }
         $eavModel = $this->getEavModel($option);
-        $rows = $eavModel->find($this->getOptionId($option));
-        if ($rows->valid()) {
-            $valueRow = $rows->current();
-        } else {
+        $valueRow = $this->getValueRow($entityRow, $option);
+        if (!$valueRow) {
             $valueRow = $eavModel->createRow();
             $valueRow->option_id = $this->getOptionId($option);
             $valueRow->entity_id = $this->getEntityId($entityRow);
