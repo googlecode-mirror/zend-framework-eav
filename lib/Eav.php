@@ -160,26 +160,29 @@ class Eav
     /**
      * Set option value
      * 
-     * @param Zend_Db_Table_Row $row entity object
+     * @param Zend_Db_Table_Row $entityRow entity object
      * @param Zend_Db_Table_Row $option option object
      * @param mixed $value option value
      */
-    public function setOptionValue($row, $option, $value)
+    public function setOptionValue($entityRow, $option, $value)
     {
+        if (is_string($option)) {
+            $option = $this->getOption($option);
+        }
         $eavModel = $this->getEavModel($option);
         $rows = $eavModel->find($this->getOptionId($option));
         if ($rows->valid()) {
-            $row = $rows->current();
+            $valueRow = $rows->current();
         } else {
-            $row = $eavModel->creatRow();
-            $row->option_id = $this->getOptionId($option);
-            $row->entity_id = $this->getEntityId($row);
+            $valueRow = $eavModel->createRow();
+            $valueRow->option_id = $this->getOptionId($option);
+            $valueRow->entity_id = $this->getEntityId($entityRow);
         }
 
-        $row->value = $value;
-        $row->save();
-        if ($row instanceof Eav_RowInterface) {
-            $row->setOptionValue($option, $value);
+        $valueRow->value = $value;
+        $valueRow->save();
+        if ($valueRow instanceof Eav_RowInterface) {
+            $valueRow->setOptionValue($option, $value);
         }
     }
 
