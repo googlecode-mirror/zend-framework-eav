@@ -1,5 +1,8 @@
 <?php
 
+/**
+ * @author Taras Taday
+ */
 interface Eav_Row_Interface
 {
     public function setAttributeValue($attributeId, $value);

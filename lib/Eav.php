@@ -6,6 +6,7 @@ require_once 'Eav/Row.php';
  * Eav class
  *
  * @author Taras Taday
+ * @version 0.1.2
  */
 class Eav
 {
