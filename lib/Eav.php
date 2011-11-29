@@ -16,19 +16,19 @@ class Eav
     protected $_entityFieldId = 'id';
 
     /*
-     * Name of option table
+     * Name of attribute table
      */
-    protected $_optionTableName = 'eav_option';
-    protected $_optionFieldId   = 'id';
-    protected $_optionFieldType = 'type';
-    protected $_optionFieldName = 'name';
+    protected $_attributeTableName = 'eav_attribute';
+    protected $_attributeFieldId   = 'id';
+    protected $_attributeFieldType = 'type';
+    protected $_attributeFieldName = 'name';
 
     /**
-     * Options model
+     * Attributes model
      * @var Zend_Db_Table_Abstract
      */
-    protected $_optionModel;
-    protected $_options;
+    protected $_attributeModel;
+    protected $_attributes;
 
     protected $_cache = false;
     protected $_cacheData = array();
@@ -42,7 +42,7 @@ class Eav
     {
         $this->_entityTableName = $this->getTableName($table);
         $this->_entityModel = $table;
-        $this->_optionModel = new Zend_Db_Table($this->_optionTableName);
+        $this->_attributeModel = new Zend_Db_Table($this->_attributeTableName);
     }
 
     public function getTableName($table)
@@ -55,9 +55,9 @@ class Eav
         return $this->_entityTableName . '_' . strtolower($type);
     }
 
-    public function getEavModel($option)
+    public function getEavModel($attribute)
     {
-        $type = $this->getOptionType($option);
+        $type = $this->getAttributeType($attribute);
         if (!isset($this->_eavModels[$type])) {
             $eavTable = new Zend_Db_Table($this->getEavTableName($type));
             $this->_eavModels[$type] = $eavTable;
@@ -66,31 +66,31 @@ class Eav
         return $this->_eavModels[$type];
     }
 
-    public function getEavModels($options)
+    public function getEavModels($attributes)
     {
         $models = array();
-        foreach ($options as $option) {
-            $type = $this->getOptionType($option);
+        foreach ($attributes as $attribute) {
+            $type = $this->getAttributeType($attribute);
             if (!isset($models[$type])) {
-                $models[$type] = $this->getEavModel($option);
+                $models[$type] = $this->getEavModel($attribute);
             }
         }
         return $models;
     }
 
-    public function getOptionType($option)
+    public function getAttributeType($attribute)
     {
-        return $option->{$this->_optionFieldType};
+        return $attribute->{$this->_attributeFieldType};
     }
 
-    public function getOptionId($option)
+    public function getAttributeId($attribute)
     {
-        return $option->{$this->_optionFieldId};
+        return $attribute->{$this->_attributeFieldId};
     }
 
-    public function getOptionName($option)
+    public function getAttributeName($attribute)
     {
-        return $option->{$this->_optionFieldName};
+        return $attribute->{$this->_attributeFieldName};
     }
 
     public function getEntityId($row)
@@ -98,111 +98,111 @@ class Eav
         return $row->{$this->_entityFieldId};
     }
 
-    public function getOption($id)
+    public function getAttribute($id)
     {
-        if (isset($this->_options[$id])) {
-            return $this->_options[$id];
+        if (isset($this->_attributes[$id])) {
+            return $this->_attributes[$id];
         } elseif (is_numeric($id)) {
-            $option = $this->_optionModel->find($id)->current();
+            $attribute = $this->_attributeModel->find($id)->current();
         } else {
-            $where = $this->_optionModel->select()->where($this->_optionFieldName . ' = ?', $id);
-            $option = $this->_optionModel->fetchRow($where);
+            $where = $this->_attributeModel->select()->where($this->_attributeFieldName . ' = ?', $id);
+            $attribute = $this->_attributeModel->fetchRow($where);
         }
-        $this->cacheOption($option);
-        return $option;
+        $this->cacheAttribute($attribute);
+        return $attribute;
     }
 
-    public function cacheOption($option)
+    public function cacheAttribute($attribute)
     {
-        $this->_options[$this->getOptionId($option)] = $option;
-        $this->_options[$this->getOptionName($option)] = $option;
+        $this->_attributes[$this->getAttributeId($attribute)] = $attribute;
+        $this->_attributes[$this->getAttributeName($attribute)] = $attribute;
     }
 
-    public function cacheOptions($options)
+    public function cacheAttributes($attributes)
     {
-        foreach ($options as $option) {
-            $this->cacheOption($option);
+        foreach ($attributes as $attribute) {
+            $this->cacheAttribute($attribute);
         }
     }
 
-    public function getValueRow($entityRow, $optionRow)
+    public function getValueRow($entityRow, $attributeRow)
     {
-        $eavModel = $this->getEavModel($optionRow);
-        $optionId = $this->getOptionId($optionRow);
+        $eavModel = $this->getEavModel($attributeRow);
+        $attributeId = $this->getAttributeId($attributeRow);
         $where = $eavModel->select()
                           ->where('entity_id = ?', $this->getEntityId($entityRow))
-                          ->where('option_id = ?', $optionId);
+                          ->where('attribute_id = ?', $attributeId);
         return $eavModel->fetchRow($where);
     }
 
     /**
-     * Return option value
+     * Return attribute value
      * 
      * @param Zend_Db_Table_Row $row entity object
-     * @param Zend_Db_Table_Row $option option object
+     * @param Zend_Db_Table_Row $attribute attribute object
      * @param boolean $reload set true to force reload entity value
      * @return mixed
      */
-    public function getOptionValue($row, $option, $reload = false)
+    public function getAttributeValue($row, $attribute, $reload = false)
     {
-        if (is_string($option)) {
-            $option = $this->getOption($option);
+        if (is_string($attribute)) {
+            $attribute = $this->getAttribute($attribute);
         }
-        $optionId = $this->getOptionId($option);
-        if (!$reload && $row instanceof Eav_RowInterface && $row->hasOptionValue($optionId)) {
-            return $row->getOptionValue($optionId);
+        $attributeId = $this->getAttributeId($attribute);
+        if (!$reload && $row instanceof Eav_RowInterface && $row->hasAttributeValue($attributeId)) {
+            return $row->getAttributeValue($attributeId);
         }
-        $valueRow = $this->getValueRow($row, $option);
+        $valueRow = $this->getValueRow($row, $attribute);
 
         $value = $valueRow ? $valueRow->value : '';
 
         if ($row instanceof Eav_RowInterface) {
-            $row->setOptionValue($optionId, $value);
+            $row->setAttributeValue($attributeId, $value);
         }
 
         return $value;
     }
 
     /**
-     * Set option value
+     * Set attribute value
      * 
      * @param Zend_Db_Table_Row $entityRow entity object
-     * @param Zend_Db_Table_Row $option option object
-     * @param mixed $value option value
+     * @param Zend_Db_Table_Row $attribute attribute object
+     * @param mixed $value attribute value
      */
-    public function setOptionValue($entityRow, $option, $value)
+    public function setAttributeValue($entityRow, $attribute, $value)
     {
-        if (is_string($option)) {
-            $option = $this->getOption($option);
+        if (is_string($attribute)) {
+            $attribute = $this->getAttribute($attribute);
         }
-        $eavModel = $this->getEavModel($option);
-        $valueRow = $this->getValueRow($entityRow, $option);
+        $eavModel = $this->getEavModel($attribute);
+        $valueRow = $this->getValueRow($entityRow, $attribute);
         if (!$valueRow) {
             $valueRow = $eavModel->createRow();
-            $valueRow->option_id = $this->getOptionId($option);
+            $valueRow->attribute_id = $this->getAttributeId($attribute);
             $valueRow->entity_id = $this->getEntityId($entityRow);
         }
 
         $valueRow->value = $value;
         $valueRow->save();
         if ($valueRow instanceof Eav_RowInterface) {
-            $valueRow->setOptionValue($option, $value);
+            $valueRow->setAttributeValue($attribute, $value);
         }
     }
 
     /**
-     * Load options values with single query
+     * Load attributes values with single query
      * 
      * @param Zend_Db_Table_Rowset $rows
-     * @param Zend_Db_Table_Rowset $options
+     * @param Zend_Db_Table_Rowset $attributes
      * @return array
      */
-    public function loadOptions($rows, $options)
+    public function loadAttributes($rows, $attributes)
     {
         if (!$rows->valid()) {
             return;
         }
-        $this->cacheOptions($options);
+        $this->cacheAttributes($attributes);
 
         $result = array();
         $entities = array();
@@ -210,7 +210,7 @@ class Eav
             $entities[$this->getEntityId($row)] = $row;
         }
 
-        $eavModels = $this->getEavModels($options);
+        $eavModels = $this->getEavModels($attributes);
 
         $queries = array();
         $entityIds = array_keys($entities);
@@ -218,13 +218,13 @@ class Eav
             $select = $eavModel->select();
             $select->where('entity_id IN(?)', $entityIds);
 
-            $optionIds = array();
-            foreach ($options as $option) {
-                if ($type == $this->getOptionType($option)) {
-                    $optionIds = $this->getOptionId($option);
+            $attributeIds = array();
+            foreach ($attributes as $attribute) {
+                if ($type == $this->getAttributeType($attribute)) {
+                    $attributeIds = $this->getAttributeId($attribute);
                 }
             }
-            $select->where('option_id IN(?)', $optionIds);
+            $select->where('attribute_id IN(?)', $attributeIds);
             $queries[] = $select->__toString();
         }
 
@@ -234,8 +234,8 @@ class Eav
         $db = Zend_Db_Table::getDefaultAdapter();
         $rows = $db->fetchAll($query);
         foreach ($rows as $row) {
-            $optionId = $this->getOptionId($this->getOption($row['option_id']));
-            $entities[$row['entity_id']]->setOptionValue($optionId, $row['value']);
+            $attributeId = $this->getAttributeId($this->getAttribute($row['attribute_id']));
+            $entities[$row['entity_id']]->setAttributeValue($attributeId, $row['value']);
         }
         return $rows;
     }

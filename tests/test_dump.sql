@@ -19,7 +19,7 @@
 -- Current Database: `eav`
 --
 
-CREATE DATABASE /*!32312 IF NOT EXISTS*/ `eav` /*!40100 DEFAULT CHARACTER SET latin1 */;
+-- CREATE DATABASE /*!32312 IF NOT EXISTS*/ `eav` /*!40100 DEFAULT CHARACTER SET latin1 */;
 
 USE `eav`;
 
@@ -56,7 +56,7 @@ DROP TABLE IF EXISTS `eav_entity_decimal`;
 CREATE TABLE `eav_entity_decimal` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `entity_id` int(10) unsigned NOT NULL,
-  `option_id` int(10) unsigned NOT NULL,
+  `attribute_id` int(10) unsigned NOT NULL,
   `value` decimal(15,3) NOT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
@@ -81,7 +81,7 @@ DROP TABLE IF EXISTS `eav_entity_int`;
 CREATE TABLE `eav_entity_int` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `entity_id` int(10) unsigned NOT NULL,
-  `option_id` int(10) unsigned NOT NULL,
+  `attribute_id` int(10) unsigned NOT NULL,
   `value` int(11) NOT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=latin1;
@@ -106,7 +106,7 @@ DROP TABLE IF EXISTS `eav_entity_string`;
 CREATE TABLE `eav_entity_string` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `entity_id` int(10) unsigned NOT NULL,
-  `option_id` int(10) unsigned NOT NULL,
+  `attribute_id` int(10) unsigned NOT NULL,
   `value` varchar(255) NOT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=latin1;
@@ -131,7 +131,7 @@ DROP TABLE IF EXISTS `eav_entity_text`;
 CREATE TABLE `eav_entity_text` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `entity_id` int(10) unsigned NOT NULL,
-  `option_id` int(10) unsigned NOT NULL,
+  `attribute_id` int(10) unsigned NOT NULL,
   `value` text NOT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
@@ -147,13 +147,13 @@ LOCK TABLES `eav_entity_text` WRITE;
 UNLOCK TABLES;
 
 --
--- Table structure for table `eav_option`
+-- Table structure for table `eav_attribute`
 --
 
-DROP TABLE IF EXISTS `eav_option`;
+DROP TABLE IF EXISTS `eav_attribute`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
-CREATE TABLE `eav_option` (
+CREATE TABLE `eav_attribute` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `type` varchar(10) NOT NULL,
   `name` varchar(25) NOT NULL,
@@ -163,12 +163,12 @@ CREATE TABLE `eav_option` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
--- Dumping data for table `eav_option`
+-- Dumping data for table `eav_attribute`
 --
 
-LOCK TABLES `eav_option` WRITE;
-/*!40000 ALTER TABLE `eav_option` DISABLE KEYS */;
-/*!40000 ALTER TABLE `eav_option` ENABLE KEYS */;
+LOCK TABLES `eav_attribute` WRITE;
+/*!40000 ALTER TABLE `eav_attribute` DISABLE KEYS */;
+/*!40000 ALTER TABLE `eav_attribute` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 

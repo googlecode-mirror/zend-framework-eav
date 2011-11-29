@@ -5,20 +5,20 @@ require_once 'Eav/Row/Interface.php';
 
 class Eav_Row extends Zend_Db_Table_Row_Abstract implements Eav_Row_Interface
 {
-    protected $_options = array();
+    protected $_attributes = array();
 
-    public function setOptionValue($optionId, $value)
+    public function setAttributeValue($attributeId, $value)
     {
-        $this->_options[$optionId] = $value;
+        $this->_attributes[$attributeId] = $value;
     }
 
-    public function hasOptionValue($optionId)
+    public function hasAttributeValue($attributeId)
     {
-        return isset($this->_options[$optionId]);
+        return isset($this->_attributes[$attributeId]);
     }
 
-    public function getOptionValue($optionId)
+    public function getAttributeValue($attributeId)
     {
-        return $this->_options[$optionId];
+        return $this->_attributes[$attributeId];
     }
 }

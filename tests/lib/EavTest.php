@@ -57,7 +57,7 @@ class EavTest extends DatabaseTestCase
         $pdo->exec("DELETE FROM eav_entity_decimal;");
         $pdo->exec("DELETE FROM eav_entity_string;");
         $pdo->exec("DELETE FROM eav_entity_text;");
-        $pdo->exec("DELETE FROM eav_option;");
+        $pdo->exec("DELETE FROM eav_attribute;");
     }
 
     public function testGetTableName()
@@ -74,11 +74,11 @@ class EavTest extends DatabaseTestCase
 
     public function testGetEavModel()
     {
-        $option = $this->_eav->getOption('secname');
-        $eavModel = $this->_eav->getEavModel($option);
+        $attribute = $this->_eav->getAttribute('secname');
+        $eavModel = $this->_eav->getEavModel($attribute);
         $this->assertTrue($eavModel instanceof Zend_Db_Table);
 
-        $tableName = $this->_eav->getEavTableName($option->type);
+        $tableName = $this->_eav->getEavTableName($attribute->type);
         $this->assertEquals($tableName, $eavModel->info('name'));
     }
 
@@ -92,22 +92,22 @@ class EavTest extends DatabaseTestCase
         );
     }
 
-    public function testGetOptionType()
+    public function testGetAttributeType()
     {
-        $option = $this->_eav->getOption('secname');
-        $this->assertEquals('string', $this->_eav->getOptionType($option));
+        $attribute = $this->_eav->getAttribute('secname');
+        $this->assertEquals('string', $this->_eav->getAttributeType($attribute));
     }
 
-    public function testGetOptionId()
+    public function testGetAttributeId()
     {
-        $option = $this->_eav->getOption('secname');
-        $this->assertEquals(1, $this->_eav->getOptionId($option));
+        $attribute = $this->_eav->getAttribute('secname');
+        $this->assertEquals(1, $this->_eav->getAttributeId($attribute));
     }
 
-    public function testGetOptionName()
+    public function testGetAttributeName()
     {
-        $option = $this->_eav->getOption('secname');
-        $this->assertEquals('secname', $this->_eav->getOptionName($option));
+        $attribute = $this->_eav->getAttribute('secname');
+        $this->assertEquals('secname', $this->_eav->getAttributeName($attribute));
     }
 
     public function testGetEntityId()
@@ -116,17 +116,17 @@ class EavTest extends DatabaseTestCase
         $this->assertEquals(1, $this->_eav->getEntityId($entity));
     }
 
-    public function testGetOption()
+    public function testGetAttribute()
     {
-        $option = $this->_eav->getOption('secname');
-        $this->assertTrue($option instanceof Zend_Db_Table_Row);
-        $this->assertEquals('secname', $option->name);
+        $attribute = $this->_eav->getAttribute('secname');
+        $this->assertTrue($attribute instanceof Zend_Db_Table_Row);
+        $this->assertEquals('secname', $attribute->name);
     }
 
     /**
-     * @todo Implement testCacheOption().
+     * @todo Implement testCacheAttribute().
      */
-    public function testCacheOption()
+    public function testCacheAttribute()
     {
         // Remove the following lines when you implement this test.
         $this->markTestIncomplete(
@@ -135,51 +135,51 @@ class EavTest extends DatabaseTestCase
     }
 
     /**
-     * @todo Implement testCacheOptions().
+     * @todo Implement testCacheAttributes().
      */
-    public function testCacheOptions() {
+    public function testCacheAttributes() {
         // Remove the following lines when you implement this test.
         $this->markTestIncomplete(
                 'This test has not been implemented yet.'
         );
     }
 
-    public function testGetOptionValue()
+    public function testGetAttributeValue()
     {
         $row = $this->_entityTable->find(1)->current();
-        $secname = $this->_eav->getOptionValue($row, 'secname');
+        $secname = $this->_eav->getAttributeValue($row, 'secname');
         $this->assertEquals('one secname', $secname);
 
         $row = $this->_entityTable->find(2)->current();
-        $secname = $this->_eav->getOptionValue($row, 'secname');
+        $secname = $this->_eav->getAttributeValue($row, 'secname');
         $this->assertEquals('two secname', $secname);
         
         $row = $this->_entityTable->find(3)->current();
-        $secname = $this->_eav->getOptionValue($row, 'secname');
+        $secname = $this->_eav->getAttributeValue($row, 'secname');
         $this->assertEquals('', $secname);
     }
 
-    public function testSetOptionValue()
+    public function testSetAttributeValue()
     {
-        $option = $this->_eav->getOption('secname');
+        $attribute = $this->_eav->getAttribute('secname');
         $row = $this->_entityTable->find(1)->current();
         
         $values = array('changed', 'changed2');
         foreach ($values as $value) {
-            $this->_eav->setOptionValue($row, $option, $value);
-            $storedValue = $this->_eav->getOptionValue($row, $option, true);
+            $this->_eav->setAttributeValue($row, $attribute, $value);
+            $storedValue = $this->_eav->getAttributeValue($row, $attribute, true);
             $this->assertEquals($value, $storedValue);
         }
     }
 
-    public function testLoadOptions()
+    public function testLoadAttributes()
     {
         $rows = $this->_entityTable->fetchAll();
-        $options = array();
-        $options[] = $this->_eav->getOption('secname');
-        $options[] = $this->_eav->getOption('age');
+        $attributes = array();
+        $attributes[] = $this->_eav->getAttribute('secname');
+        $attributes[] = $this->_eav->getAttribute('age');
 
-        $data = $this->_eav->loadOptions($rows, $options);
+        $data = $this->_eav->loadAttributes($rows, $attributes);
 
         $this->assertTrue(is_array($data));
     }

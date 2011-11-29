@@ -2,7 +2,7 @@
 
 interface Eav_Row_Interface
 {
-    public function setOptionValue($optionId, $value);
-    public function hasOptionValue($optionId);
-    public function getOptionValue($optionId);
+    public function setAttributeValue($attributeId, $value);
+    public function hasAttributeValue($attributeId);
+    public function getAttributeValue($attributeId);
 }

@@ -11,7 +11,7 @@ set_include_path(
 );
 
 require_once 'Zend/Loader/Autoloader.php';
-require_once 'PHPUnit/Framework.php';
+//require_once 'PHPUnit/Framework.php';
 
 $autoloader = Zend_Loader_Autoloader::getInstance();
 $autoloader->setFallbackAutoloader(true);

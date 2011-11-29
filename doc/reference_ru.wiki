@@ -14,7 +14,7 @@
 Каждая такая таблица должна содержать следующие поля:
   * id(INT) - первичный ключ таблицы(autoincrement)
   * entity_id(INT) - идентификатор вашой записи для которой сохраняется значения
-  * option_id(INT) - идентификатор атрибута для которого сохраняется значение
+  * attribute_id(INT) - идентификатор атрибута для которого сохраняется значение
   * value - поле где сохраняется само значение атрибута, тип поля будет разным
     для каждой таблицы (int, decimal, varchar, text)
 
@@ -42,10 +42,10 @@ id      type     name
 class Eav_Product extends Eav
 {
     protected $_entityFieldId = 'id'; // имя первичного ключа в таблице products
-    protected $_optionTableName = 'product_option'; // имя таблицы опций(атрибутов)
-    protected $_optionFieldId   = 'option_id'; // имя первичного ключа в таблице опций
-    protected $_optionFieldType = 'option_type'; // имя для поля "type" в таблице опций
-    protected $_optionFieldName = 'option_name'; // имя для поля "name" в таблице опций
+    protected $_attributeTableName = 'product_attribute'; // имя таблицы опций(атрибутов)
+    protected $_attributeFieldId   = 'attribute_id'; // имя первичного ключа в таблице опций
+    protected $_attributeFieldType = 'attribute_type'; // имя для поля "type" в таблице опций
+    protected $_attributeFieldName = 'attribute_name'; // имя для поля "name" в таблице опций
 }
 
 }}}
@@ -59,9 +59,9 @@ $productEav = new Eav_Product($productModel);
 $products = $productModel->find(array(1,2,3));
 
 foreach ($products as $product) {
-    $productEav->setOptionValue($product, 'quantity', 10);
-    $productEav->setOptionValue($product, 'title', 'product title');
-    $productEav->setOptionValue($product, 'description', 'my description');
+    $productEav->setAttributeValue($product, 'quantity', 10);
+    $productEav->setAttributeValue($product, 'title', 'product title');
+    $productEav->setAttributeValue($product, 'description', 'my description');
 }
 
 }}}
@@ -71,20 +71,20 @@ $productModel = new Zend_Db_Table('products');
 $productEav = new Eav_Product($productModel);
 
 $product = $productModel->find(1)->current();
-echo $productEav->getOptionValue($product, 'quantity');
-echo $productEav->getOptionValue($product, 'title');
-echo $productEav->getOptionValue($product, 'description');
+echo $productEav->getAttributeValue($product, 'quantity');
+echo $productEav->getAttributeValue($product, 'title');
+echo $productEav->getAttributeValue($product, 'description');
 
 ==Пример использования==
 Controller:
 {{{
 
-$optionModel = new Zend_Db_Table('options');
+$attributeModel = new Zend_Db_Table('attributes');
 $productModel = new Zend_Db_Table('products');
 $productEav = new Eav_Product($productModel);
 
 $products = $productModel->find(array(1,2,3));
-$options = $optionModel->fetchAll();
+$attributes = $attributeModel->fetchAll();
 
 }}}
 
@@ -93,10 +93,10 @@ View:
 <?php foreach ($this->products as $product): ?>
 
     <b><?php echo $product->title; ?></b><br />
-    <?php foreach ($this->options as $option): ?>
+    <?php foreach ($this->attributes as $attribute): ?>
 
-        <?php echo $option->label; ?>:
-        <?php echo $this->eav->getOptionValue($product, $option); ?><br />
+        <?php echo $attribute->label; ?>:
+        <?php echo $this->eav->getAttributeValue($product, $attribute); ?><br />
 
     <?php endforeach; ?>
 
@@ -112,7 +112,7 @@ Eav_Row_Interface. Если вы не используете свой RowClass �
 
 {{{
 
-$optionModel = new Zend_Db_Table('options');
+$attributeModel = new Zend_Db_Table('attributes');
 
 $productModel = new Zend_Db_Table('products');
 $productModel->setRowClass('Eav_Row');
@@ -122,28 +122,28 @@ $productEav = new Eav_Product($productModel);
 $products = $productModel->find(array(1,2,3));
 
 // Загрузка всех атрибутов
-$options = $optionModel->fetchAll();
-$productEav->loadOptions($rows, $options);
+$attributes = $attributeModel->fetchAll();
+$productEav->loadAttributes($rows, $attributes);
 
 foreach ($products as $product) {
     // здесь не будет вызвано никакого запроса к базе данных
-    echo $productEav->getOptionValue($product, 'title');
-    echo $productEav->getOptionValue($product, 'description');
-    echo $productEav->getOptionValue($product, 'quantity');
+    echo $productEav->getAttributeValue($product, 'title');
+    echo $productEav->getAttributeValue($product, 'description');
+    echo $productEav->getAttributeValue($product, 'quantity');
 }
 
 // Загрузка определенных атрибутов
-$where = $optionModle->select()->where("name in(?)", array('title', 'description'));
-$options = $optionModel->fetchAll($where);
-$productEav->loadOptions($products, $options);
+$where = $attributeModle->select()->where("name in(?)", array('title', 'description'));
+$attributes = $attributeModel->fetchAll($where);
+$productEav->loadAttributes($products, $attributes);
 
 foreach ($products as $product) {
     // здесь не будет вызвано никакого запроса к базе данных
-    echo $productEav->getOptionValue($product, 'title');
-    echo $productEav->getOptionValue($product, 'description');
+    echo $productEav->getAttributeValue($product, 'title');
+    echo $productEav->getAttributeValue($product, 'description');
 
     // а для этого атрибута будет вызван запрос к базе
-    echo $productEav->getOptionValue($product, 'quantity');
+    echo $productEav->getAttributeValue($product, 'quantity');
 }
 
 }}}

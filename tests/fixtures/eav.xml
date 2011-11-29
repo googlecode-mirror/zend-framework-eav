@@ -22,7 +22,7 @@
     
   </table>
 
-  <table name="eav_option">
+  <table name="eav_attribute">
     <column>id</column>
     <column>type</column>
     <column>name</column>
@@ -56,7 +56,7 @@
   <table name="eav_entity_string">
       <column>id</column>
       <column>entity_id</column>
-      <column>option_id</column>
+      <column>attribute_id</column>
       <column>value</column>
       <row>
           <value>1</value>
@@ -75,7 +75,7 @@
   <table name="eav_entity_int">
       <column>id</column>
       <column>entity_id</column>
-      <column>option_id</column>
+      <column>attribute_id</column>
       <column>value</column>
       <row>
           <value>1</value>

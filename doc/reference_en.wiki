@@ -15,17 +15,17 @@ Example:
 Each table should contain next fields:
   * id(INT) – primary key(auto increment)
   * entity_id(INT) – identifier of your record in the products table
-  * option_id(INT) – identifier of attribute
+  * attribute_id(INT) – identifier of attribute
   * value – in this field the value of attribute will be stored. Type of this field should be different for each table(int, decimal, varchar, text)
 
-Also you should have table of options(attributes) with next fields inside:
+Also you should have table of attributes with next fields inside:
     * id, primary key
-    * type, type of option(attribute)
-    * name, name of option(attribute)
+    * type, type of attribute
+    * name, name of attribute
 
 The names of these fields do not necessarily have to be called as above. Here we have the names of fields by default. If you don't have such table then create it.
 
-Then create several records in the 'options' table
+Then create several records in the 'attributes' table
 {{{
 id      type     name
 1       int      quantity
@@ -40,10 +40,10 @@ You can specify the others names of required fields:
 class Eav_Product extends Eav
 {
     protected $_entityFieldId = 'id'; // name of primary key of products table
-    protected $_optionTableName = 'product_option'; // name of 'options' table
-    protected $_optionFieldId   = 'option_id'; // name of primary key of options table
-    protected $_optionFieldType = 'option_type'; // field where option type is stored
-    protected $_optionFieldName = 'option_name'; // field where option name is stored
+    protected $_attributeTableName = 'product_attribute'; // name of 'attributes' table
+    protected $_attributeFieldId   = 'attribute_id'; // name of primary key of attributes table
+    protected $_attributeFieldType = 'attribute_type'; // field where attribute type is stored
+    protected $_attributeFieldName = 'attribute_name'; // field where attribute name is stored
 }
 
 }}}
@@ -57,9 +57,9 @@ $productEav = new Eav_Product($productModel);
 $products = $productModel->find(array(1,2,3));
 
 foreach ($products as $product) {
-    $productEav->setOptionValue($product, 'quantity', 10);
-    $productEav->setOptionValue($product, 'title', 'product title');
-    $productEav->setOptionValue($product, 'description', 'my description');
+    $productEav->setAttributeValue($product, 'quantity', 10);
+    $productEav->setAttributeValue($product, 'title', 'product title');
+    $productEav->setAttributeValue($product, 'description', 'my description');
 }
 
 }}}
@@ -70,33 +70,33 @@ $productModel = new Zend_Db_Table('products');
 $productEav = new Eav_Product($productModel);
 
 $product = $productModel->find(1)->current();
-echo $productEav->getOptionValue($product, 'quantity');
-echo $productEav->getOptionValue($product, 'title');
-echo $productEav->getOptionValue($product, 'description');
+echo $productEav->getAttributeValue($product, 'quantity');
+echo $productEav->getAttributeValue($product, 'title');
+echo $productEav->getAttributeValue($product, 'description');
 
-// or using option id
-echo $productEav->getOptionValue($product, '1');
+// or using attribute id
+echo $productEav->getAttributeValue($product, '1');
 
-// or using option object(Row)
-$optionTable = new Zend_Db_Table('options');
-$option = $optionTable->find(2)->current();
-echo $productEav->getOptionValue($product, $option);
+// or using attribute object(Row)
+$attributeTable = new Zend_Db_Table('attributes');
+$attribute = $attributeTable->find(2)->current();
+echo $productEav->getAttributeValue($product, $attribute);
 
 // or using eav object
-$option = $productEav->getOption('title');
-echo $productEav->getOptionValue($product, $option);
+$attribute = $productEav->getAttribute('title');
+echo $productEav->getAttributeValue($product, $attribute);
 }}}
 
 ==Full example==
 Controller:
 {{{
 
-$optionModel = new Zend_Db_Table('options');
+$attributeModel = new Zend_Db_Table('attributes');
 $productModel = new Zend_Db_Table('products');
 $productEav = new Eav_Product($productModel);
 
 $products = $productModel->find(array(1,2,3));
-$options = $optionModel->fetchAll();
+$attributes = $attributeModel->fetchAll();
 
 }}}
 
@@ -105,10 +105,10 @@ View:
 <?php foreach ($this->products as $product): ?>
 
     <b><?php echo $product->title; ?></b><br />
-    <?php foreach ($this->options as $option): ?>
+    <?php foreach ($this->attributes as $attribute): ?>
 
-        <?php echo $option->label; ?>:
-        <?php echo $this->eav->getOptionValue($product, $option); ?><br />
+        <?php echo $attribute->label; ?>:
+        <?php echo $this->eav->getAttributeValue($product, $attribute); ?><br />
 
     <?php endforeach; ?>
 
@@ -120,7 +120,7 @@ With the approach above, every time you want to get the value of attribute you w
 
 {{{
 
-$optionModel = new Zend_Db_Table('options');
+$attributeModel = new Zend_Db_Table('attributes');
 
 $productModel = new Zend_Db_Table('products');
 $productModel->setRowClass('Eav_Row');
@@ -130,31 +130,31 @@ $productEav = new Eav_Product($productModel);
 $products = $productModel->find(array(1,2,3));
 
 // Loading all attributes
-$options = $optionModel->fetchAll();
-$productEav->loadOptions($rows, $options);
+$attributes = $attributeModel->fetchAll();
+$productEav->loadAttributes($rows, $attributes);
 
 foreach ($products as $product) {
     // no more queries
-    echo $productEav->getOptionValue($product, 'title');
-    echo $productEav->getOptionValue($product, 'description');
-    echo $productEav->getOptionValue($product, 'quantity');
+    echo $productEav->getAttributeValue($product, 'title');
+    echo $productEav->getAttributeValue($product, 'description');
+    echo $productEav->getAttributeValue($product, 'quantity');
 }
 
 // Loading some attributes
-$where = $optionModel->select()->where("name in(?)", array('title', 'description'));
-$options = $optionModel->fetchAll($where);
+$where = $attributeModel->select()->where("name in(?)", array('title', 'description'));
+$attributes = $attributeModel->fetchAll($where);
 // or
-$options = $optionModel->find(array(2,3));
+$attributes = $attributeModel->find(array(2,3));
 
-$productEav->loadOptions($products, $options);
+$productEav->loadAttributes($products, $attributes);
 
 foreach ($products as $product) {
     // no more queries
-    echo $productEav->getOptionValue($product, 'title');
-    echo $productEav->getOptionValue($product, 'description');
+    echo $productEav->getAttributeValue($product, 'title');
+    echo $productEav->getAttributeValue($product, 'description');
 
     // here we have one query to database
-    echo $productEav->getOptionValue($product, 'quantity');
+    echo $productEav->getAttributeValue($product, 'quantity');
 }
 
 }}}
