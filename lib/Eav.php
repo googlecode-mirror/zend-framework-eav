@@ -222,7 +222,7 @@ class Eav
             $attributeIds = array();
             foreach ($attributes as $attribute) {
                 if ($type == $this->getAttributeType($attribute)) {
-                    $attributeIds = $this->getAttributeId($attribute);
+                    $attributeIds[] = $this->getAttributeId($attribute);
                 }
             }
             $select->where('attribute_id IN(?)', $attributeIds);
