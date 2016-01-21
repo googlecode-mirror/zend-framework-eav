@@ -1,0 +1,149 @@
+# Руководство #
+
+## Быстрый старт ##
+
+### Подготовка таблиц ###
+Допустим у вас есть таблица "products" для которой вы хотите сохранять дополнительные
+атрибуты. Создайте несколько таблиц где будут сохранятся значения атрибутов.
+Например:
+  * products\_int,
+  * products\_decimal
+  * products\_string
+  * products\_text
+
+Каждая такая таблица должна содержать следующие поля:
+  * id(INT) - первичный ключ таблицы(autoincrement)
+  * entity\_id(INT) - идентификатор вашой записи для которой сохраняется значения
+  * attribute\_id(INT) - идентификатор атрибута для которого сохраняется значение
+  * value - поле где сохраняется само значение атрибута, тип поля будет разным для каждой таблицы (int, decimal, varchar, text)
+
+Также у вас должна быть таблица атрибутов которая должна содержать
+минимум 3 следующих поля:
+  * id, первичный ключ
+  * type, поле типа, по нему определается в какой таблице будут сохранятся значения
+  * name, имя атрибута, по которому вы его будете идентифицыровать. Конечно можно использовать и id но имя на много удобнее при чтении кода
+Имена этих полей не обязательно должны называться так как выше, здесь представлены имена полей по умолчанию. Если таблицы атрибутов нету, тогда создайте ее.
+
+Создайте в таблице атрибутов несколько записей.
+```
+
+id      type     name
+1       int      quantity
+2       string   title
+3       text     description
+
+```
+
+### Наследование от Eav ###
+В оригинальном классе используются имена полей по умолчанию, если они у вас другие
+тогда создайте класс потомок от класса Eav и задайте эти поля. Например:
+```
+
+class Eav_Product extends Eav
+{
+    protected $_entityFieldId = 'id'; // имя первичного ключа в таблице products
+    protected $_attributeTableName = 'product_attribute'; // имя таблицы атрибутов
+    protected $_attributeFieldId   = 'attribute_id'; // имя первичного ключа в таблице атрибутов
+    protected $_attributeFieldType = 'attribute_type'; // имя для поля "type" в таблице атрибутов
+    protected $_attributeFieldName = 'attribute_name'; // имя для поля "name" в таблице атрибутов
+}
+
+```
+
+### Сохранение атрибутов ###
+```
+
+$productModel = new Zend_Db_Table('products');
+$productEav = new Eav_Product($productModel);
+
+$products = $productModel->find(array(1,2,3));
+
+foreach ($products as $product) {
+    $productEav->setAttributeValue($product, 'quantity', 10);
+    $productEav->setAttributeValue($product, 'title', 'product title');
+    $productEav->setAttributeValue($product, 'description', 'my description');
+}
+
+```
+
+### Получение значений атрибутов ###
+```
+
+$productModel = new Zend_Db_Table('products');
+$productEav = new Eav_Product($productModel);
+
+$product = $productModel->find(1)->current();
+echo $productEav->getAttributeValue($product, 'quantity');
+echo $productEav->getAttributeValue($product, 'title');
+echo $productEav->getAttributeValue($product, 'description');
+
+```
+
+## Пример использования ##
+Controller:
+```
+
+$attributeModel = new Zend_Db_Table('attributes');
+$productModel = new Zend_Db_Table('products');
+$productEav = new Eav_Product($productModel);
+
+$products = $productModel->find(array(1,2,3));
+$attributes = $attributeModel->fetchAll();
+
+```
+
+View:
+```
+<?php foreach ($this->products as $product): ?>
+
+    <b><?php echo $product->title; ?></b><br />
+    <?php foreach ($this->attributes as $attribute): ?>
+
+        <?php echo $attribute->label; ?>:
+        <?php echo $this->eav->getAttributeValue($product, $attribute); ?><br />
+
+    <?php endforeach; ?>
+
+<?php endforeach; ?>
+```
+
+## Ускорение ##
+При подходе выше каждый раз когда вы хотите получить значение атрибута будет выполнен запрос к базе данных. Можно получить значения атрибутов используя всего один запрос к базе данных. Для этого нужно чтобы RowClass вашей модели реализовал Eav\_Row\_Interface. Если вы не используете свой RowClass тогда можно просто использовать готовый класс Eav\_Row. Ниже несколько примеров:
+
+```
+
+$attributeModel = new Zend_Db_Table('attributes');
+
+$productModel = new Zend_Db_Table('products');
+$productModel->setRowClass('Eav_Row');
+
+$productEav = new Eav_Product($productModel);
+
+$products = $productModel->find(array(1,2,3));
+
+// Загрузка всех атрибутов
+$attributes = $attributeModel->fetchAll();
+$productEav->loadAttributes($rows, $attributes);
+
+foreach ($products as $product) {
+    // здесь не будет вызвано никакого запроса к базе данных
+    echo $productEav->getAttributeValue($product, 'title');
+    echo $productEav->getAttributeValue($product, 'description');
+    echo $productEav->getAttributeValue($product, 'quantity');
+}
+
+// Загрузка определенных атрибутов
+$where = $attributeModle->select()->where("name in(?)", array('title', 'description'));
+$attributes = $attributeModel->fetchAll($where);
+$productEav->loadAttributes($products, $attributes);
+
+foreach ($products as $product) {
+    // здесь не будет вызвано никакого запроса к базе данных
+    echo $productEav->getAttributeValue($product, 'title');
+    echo $productEav->getAttributeValue($product, 'description');
+
+    // а для этого атрибута будет вызван запрос к базе
+    echo $productEav->getAttributeValue($product, 'quantity');
+}
+
+```
